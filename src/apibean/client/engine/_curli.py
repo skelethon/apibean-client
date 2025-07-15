@@ -85,7 +85,7 @@ class Curli:
         return ResponseWrapper(response, session_store=self._session, account_store=self._account)
 
     def _wrap_request(self, request):
-        return RequestWrapper(request)
+        return RequestWrapper(request, session_store=self._session, account_store=self._account)
 
     #--------------------------------------------------------------------------
 

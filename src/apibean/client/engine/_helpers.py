@@ -1,6 +1,7 @@
 from typing import List, Optional
 from functools import reduce
 
+import httpx
 import json
 import re
 
@@ -8,8 +9,10 @@ from ._consts import HK_REQUEST_ID
 from ._utils import comma_delimited_string
 
 class RequestWrapper:
-    def __init__(self, wrapped_object):
+    def __init__(self, wrapped_object, session_store, account_store):
         self._wrapped_object = wrapped_object
+        self._session_store = session_store
+        self._account_store = account_store
 
     def __getattr__(self, name):
         """Intercepts attribute access and forwards it to the wrapped object."""
@@ -36,6 +39,11 @@ class RequestWrapper:
     def __class__(self):
         """Preserves the class of the wrapped object."""
         return self._wrapped_object.__class__
+
+    def send(self):
+        return ResponseWrapper(httpx.Client().send(self._wrapped_object),
+                session_store=self._session_store,
+                account_store=self._account_store)
 
     def to_curl(self):
         """to_curl function returns a string of curl to execute in shell."""
