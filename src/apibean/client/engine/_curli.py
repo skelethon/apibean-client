@@ -86,29 +86,22 @@ class Curli:
         return self._wrap_response(self._invoker.request(method, url, *args, **kwargs))
 
     def get(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.get(url, *args, **kwargs))
+        return self.request("GET", url, *args, **kwargs)
 
     def head(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.head(url, *args, **kwargs))
+        return self.request("HEAD", url, *args, **kwargs)
 
     def options(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.options(url, *args, **kwargs))
+        return self.request("OPTIONS", url, *args, **kwargs)
 
     def post(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.post(url, *args, **kwargs))
+        return self.request("POST", url, *args, **kwargs)
 
     def put(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.put(url, *args, **kwargs))
+        return self.request("PUT", url, *args, **kwargs)
 
     def patch(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.patch(url, *args, **kwargs))
+        return self.request("PATCH", url, *args, **kwargs)
 
     def delete(self, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.delete(url, *args, **kwargs))
+        return self.request("DELETE", url, *args, **kwargs)
