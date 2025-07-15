@@ -53,7 +53,7 @@ class Curli:
 
         return self
 
-    def _build_request(self, url, *args, headers = None, **kwargs):
+    def _build_params(self, url, *args, headers = None, **kwargs):
         base_url = kwargs.get(JF_BASE_URL, self._session[JF_BASE_URL])
         if not url.startswith('http') and base_url:
             url = urllib.parse.urljoin(base_url + '/', url.lstrip('/'))
@@ -82,7 +82,7 @@ class Curli:
         return ResponseWrapper(response, session_store=self._session, account_store=self._account)
 
     def request(self, method, url, *args, **kwargs):
-        url, args, kwargs = self._build_request(url, *args, **kwargs)
+        url, args, kwargs = self._build_params(url, *args, **kwargs)
         return self._wrap_response(self._invoker.request(method, url, *args, **kwargs))
 
     def get(self, url, *args, **kwargs):
