@@ -1,5 +1,7 @@
 from typing import Self
 from uuid import uuid4
+
+import httpx
 import urllib.parse
 
 from ._consts import JF_BASE_URL
@@ -7,6 +9,7 @@ from ._consts import JF_ACCESS_TOKEN
 from ._consts import HK_AUTHORIZATION
 from ._consts import HK_REQUEST_ID
 from ._decorators import deprecated
+from ._helpers import RequestWrapper
 from ._helpers import ResponseWrapper
 from ._store import Store
 from ._utils import normalize_header
@@ -80,6 +83,38 @@ class Curli:
 
     def _wrap_response(self, response):
         return ResponseWrapper(response, session_store=self._session, account_store=self._account)
+
+    def _wrap_request(self, request):
+        return RequestWrapper(request)
+
+    #--------------------------------------------------------------------------
+
+    def prepare_request(self, method, url, *args, **kwargs):
+        url, args, kwargs = self._build_params(url, *args, **kwargs)
+        return self._wrap_request(httpx.Request(method = method, url=url, *args, **kwargs))
+
+    def prepare_get(self, url, *args, **kwargs):
+        return self.prepare_request("GET", url, *args, **kwargs)
+
+    def prepare_head(self, url, *args, **kwargs):
+        return self.prepare_request("HEAD", url, *args, **kwargs)
+
+    def prepare_options(self, url, *args, **kwargs):
+        return self.prepare_request("OPTIONS", url, *args, **kwargs)
+
+    def prepare_post(self, url, *args, **kwargs):
+        return self.prepare_request("POST", url, *args, **kwargs)
+
+    def prepare_put(self, url, *args, **kwargs):
+        return self.prepare_request("PUT", url, *args, **kwargs)
+
+    def prepare_patch(self, url, *args, **kwargs):
+        return self.prepare_request("PATCH", url, *args, **kwargs)
+
+    def prepare_delete(self, url, *args, **kwargs):
+        return self.prepare_request("DELETE", url, *args, **kwargs)
+
+    #--------------------------------------------------------------------------
 
     def request(self, method, url, *args, **kwargs):
         url, args, kwargs = self._build_params(url, *args, **kwargs)

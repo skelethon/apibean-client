@@ -7,6 +7,44 @@ import re
 from ._consts import HK_REQUEST_ID
 from ._utils import comma_delimited_string
 
+class RequestWrapper:
+    def __init__(self, wrapped_object):
+        self._wrapped_object = wrapped_object
+
+    def __getattr__(self, name):
+        """Intercepts attribute access and forwards it to the wrapped object."""
+        return getattr(self._wrapped_object, name)
+
+    def __setattr__(self, name, value):
+        """Intercepts attribute assignment and forwards it to the wrapped object."""
+        if name == "_wrapped_object":
+            # Allow assignment of the wrapped object itself.
+            super().__setattr__(name, value)
+        else:
+            # Forward other assignments to the wrapped object.
+            setattr(self._wrapped_object, name, value)
+
+    def __repr__(self):
+        """Returns the representation of the wrapped object."""
+        return repr(self._wrapped_object)
+
+    def __str__(self):
+        """Returns the string representation of the wrapped object."""
+        return str(self._wrapped_object)
+
+    @property
+    def __class__(self):
+        """Preserves the class of the wrapped object."""
+        return self._wrapped_object.__class__
+
+    def to_curl(self):
+        """to_curl function returns a string of curl to execute in shell."""
+        return Curlify(self._wrapped_object).to_curl()
+
+    def print_curl(self):
+        print(self.to_curl())
+
+
 class ResponseWrapper:
     def __init__(self, wrapped_object, session_store, account_store):
         self._wrapped_object = wrapped_object
