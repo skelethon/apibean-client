@@ -33,3 +33,15 @@ def normalize_headers(headers: dict[str, str], canonical_keys: list[str]) -> dic
             # Không khớp: giữ nguyên key gốc
             normalized[key] = value
     return normalized
+
+
+def comma_delimited_string(s: str):
+    return comma_delimited_string_to_cls_list(s, str)
+
+
+def comma_delimited_string_to_cls_list(s: str, as_cls = str):
+    return [as_cls(x.strip()) for x in s.split(',')] if s is not None else None
+
+
+def comma_delimited_string_to_int_list(s: str):
+    return comma_delimited_string_to_cls_list(s, int)

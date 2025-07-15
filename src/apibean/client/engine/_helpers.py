@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import List, Optional
 from functools import reduce
 
 import json
 import re
 
 from ._consts import HK_REQUEST_ID
+from ._utils import comma_delimited_string
 
 class ResponseWrapper:
     def __init__(self, wrapped_object, session_store, account_store):
@@ -60,13 +61,13 @@ class ResponseWrapper:
             )
         return body.get(field_name)
 
-    def capture_id_refs(self, name_of_id_refs:Optional[str] = None, name_of_key_field = "email"):
+    def capture_id_refs(self, name_of_id_refs:Optional[str] = None, name_of_key_field = "email", reset: bool = False):
         if not self._wrapped_object.is_success:
             self.print()
             raise RuntimeError("The response is not sussess")
         if name_of_id_refs is None:
             name_of_id_refs = self._build_name_of_id_refs()
-        if name_of_id_refs not in self._session_store:
+        if name_of_id_refs not in self._session_store or reset:
             self._session_store[name_of_id_refs] = dict()
         self._session_store[name_of_id_refs].update(**self._extract_ids_map(name_of_key_field))
         return self
@@ -78,8 +79,10 @@ class ResponseWrapper:
         urlpath = r.request.url.path
         return urlpath.split('/')[-1]
 
-    def _extract_ids_map(self, name_of_key_field="email"):
-        return reduce(lambda acc, item: {**acc, item[name_of_key_field]: item["id"]},
+    def _extract_ids_map(self, name_of_key_field="email", name_of_key_fields: Optional[List] = None):
+        if not name_of_key_fields:
+            name_of_key_fields = comma_delimited_string(name_of_key_field)
+        return reduce(lambda acc, item: {**acc, ",".join(item[k] for k in name_of_key_fields): item["id"]},
                 self._get_list_of_items(),
                 dict())
 
