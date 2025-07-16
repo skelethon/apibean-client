@@ -89,30 +89,62 @@ class Curli:
 
     #--------------------------------------------------------------------------
 
-    def prepare_request(self, method, url, *args, **kwargs):
+    class PrepareObject:
+        def __init__(self, parent):
+            self._parent = parent
+
+        def request(self, method, url, *args, **kwargs):
+            return self._parent.pre_request(method=method, url=url, *args, **kwargs)
+
+        def get(self, url, *args, **kwargs):
+            return self.request("GET", url, *args, **kwargs)
+
+        def head(self, url, *args, **kwargs):
+            return self.request("HEAD", url, *args, **kwargs)
+
+        def options(self, url, *args, **kwargs):
+            return self.request("OPTIONS", url, *args, **kwargs)
+
+        def post(self, url, *args, **kwargs):
+            return self.request("POST", url, *args, **kwargs)
+
+        def put(self, url, *args, **kwargs):
+            return self.request("PUT", url, *args, **kwargs)
+
+        def patch(self, url, *args, **kwargs):
+            return self.request("PATCH", url, *args, **kwargs)
+
+        def delete(self, url, *args, **kwargs):
+            return self.request("DELETE", url, *args, **kwargs)
+
+    @property
+    def prepare(self):
+        return self.PrepareObject(self)
+
+    def pre_request(self, method, url, *args, **kwargs):
         url, args, kwargs = self._build_params(url, *args, **kwargs)
-        return self._wrap_request(httpx.Request(method = method, url=url, *args, **kwargs))
+        return self._wrap_request(httpx.Request(method=method, url=url, *args, **kwargs))
 
-    def prepare_get(self, url, *args, **kwargs):
-        return self.prepare_request("GET", url, *args, **kwargs)
+    def pre_get(self, url, *args, **kwargs):
+        return self.pre_request("GET", url, *args, **kwargs)
 
-    def prepare_head(self, url, *args, **kwargs):
-        return self.prepare_request("HEAD", url, *args, **kwargs)
+    def pre_head(self, url, *args, **kwargs):
+        return self.pre_request("HEAD", url, *args, **kwargs)
 
-    def prepare_options(self, url, *args, **kwargs):
-        return self.prepare_request("OPTIONS", url, *args, **kwargs)
+    def pre_options(self, url, *args, **kwargs):
+        return self.pre_request("OPTIONS", url, *args, **kwargs)
 
-    def prepare_post(self, url, *args, **kwargs):
-        return self.prepare_request("POST", url, *args, **kwargs)
+    def pre_post(self, url, *args, **kwargs):
+        return self.pre_request("POST", url, *args, **kwargs)
 
-    def prepare_put(self, url, *args, **kwargs):
-        return self.prepare_request("PUT", url, *args, **kwargs)
+    def pre_put(self, url, *args, **kwargs):
+        return self.pre_request("PUT", url, *args, **kwargs)
 
-    def prepare_patch(self, url, *args, **kwargs):
-        return self.prepare_request("PATCH", url, *args, **kwargs)
+    def pre_patch(self, url, *args, **kwargs):
+        return self.pre_request("PATCH", url, *args, **kwargs)
 
-    def prepare_delete(self, url, *args, **kwargs):
-        return self.prepare_request("DELETE", url, *args, **kwargs)
+    def pre_delete(self, url, *args, **kwargs):
+        return self.pre_request("DELETE", url, *args, **kwargs)
 
     #--------------------------------------------------------------------------
 
