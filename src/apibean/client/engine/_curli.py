@@ -1,8 +1,8 @@
 from typing import Self
 from uuid import uuid4
 
-import httpx
 import urllib.parse
+import httpx
 
 from ._consts import JF_BASE_URL
 from ._consts import JF_ACCESS_TOKEN
@@ -79,13 +79,15 @@ class Curli:
 
         headers = {HK_REQUEST_ID: str(uuid4()), **headers}
 
-        return (url, args, dict(kwargs, headers=headers))
+        other_kwargs = { key: value for key, value in kwargs.items() if key in ("timeout")}
 
-    def _wrap_response(self, response):
-        return ResponseWrapper(response, session_store=self._session, account_store=self._account)
+        return (url, args, dict(kwargs, headers=headers), other_kwargs)
 
-    def _wrap_request(self, request):
-        return RequestWrapper(request, session_store=self._session, account_store=self._account)
+    def _wrap_response(self, response, **others):
+        return ResponseWrapper(response, session_store=self._session, account_store=self._account, **others)
+
+    def _wrap_request(self, request, **others):
+        return RequestWrapper(request, session_store=self._session, account_store=self._account, **others)
 
     #--------------------------------------------------------------------------
 
@@ -122,8 +124,8 @@ class Curli:
         return self.PrepareObject(self)
 
     def pre_request(self, method, url, *args, **kwargs):
-        url, args, kwargs = self._build_params(url, *args, **kwargs)
-        return self._wrap_request(httpx.Request(method=method, url=url, *args, **kwargs))
+        url, args, kwargs, others = self._build_params(url, *args, **kwargs)
+        return self._wrap_request(httpx.Request(method=method, url=url, *args, **kwargs), **others)
 
     def pre_get(self, url, *args, **kwargs):
         return self.pre_request("GET", url, *args, **kwargs)
@@ -149,8 +151,8 @@ class Curli:
     #--------------------------------------------------------------------------
 
     def request(self, method, url, *args, **kwargs):
-        url, args, kwargs = self._build_params(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.request(method, url, *args, **kwargs))
+        url, args, kwargs, others = self._build_params(url, *args, **kwargs)
+        return self._wrap_response(self._invoker.request(method, url, *args, **kwargs), **others)
 
     def get(self, url, *args, **kwargs):
         return self.request("GET", url, *args, **kwargs)

@@ -1,6 +1,5 @@
 from typing import Self
 
-from ._consts import JF_BASE_URL
 from ._consts import JF_USERNAME
 from ._consts import JF_PASSWORD
 from ._consts import JF_ACTIVATION_CODE
@@ -33,14 +32,14 @@ class Agent:
 
     ACCOUNT_AUTH_FIELDS = [JF_ID, JF_EMAIL, JF_ACCESS_TOKEN, JF_REFRESH_TOKEN, JF_EXPIRATION]
 
-    def __init__(self, curli):
+    def __init__(self, curli: Curli):
         self._curli = curli
 
     def as_account(self, *args, **kwargs) -> Self:
         self._curli.as_account(*args, **kwargs)
         return self
 
-    def in_session(self, *args, **kwargs):
+    def in_session(self, *args, **kwargs) -> Self:
         self._curli.in_session(*args, **kwargs)
         return self
 
@@ -52,13 +51,13 @@ class Agent:
     def _session(self):
         return getattr(self._curli, "_session")
 
-    def is_authenticated(self):
+    def is_authenticated(self) -> bool:
         for required_field in [JF_ACCESS_TOKEN, JF_REFRESH_TOKEN, JF_EXPIRATION]:
             if required_field not in self._account:
                 return False
         return True
 
-    def is_still_valid(self):
+    def is_still_valid(self) -> bool | None:
         if not self.is_authenticated():
             return None
         expires = to_datetime(self._account.get(JF_EXPIRATION))

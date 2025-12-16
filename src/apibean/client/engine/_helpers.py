@@ -1,18 +1,20 @@
 from typing import List, Optional
 from functools import reduce
 
-import httpx
 import json
 import re
+
+import httpx
 
 from ._consts import HK_REQUEST_ID
 from ._utils import comma_delimited_string
 
 class RequestWrapper:
-    def __init__(self, wrapped_object, session_store, account_store):
+    def __init__(self, wrapped_object, session_store, account_store, **kwargs):
         self._wrapped_object = wrapped_object
         self._session_store = session_store
         self._account_store = account_store
+        self._other_kwargs = kwargs or dict()
 
     def __getattr__(self, name):
         """Intercepts attribute access and forwards it to the wrapped object."""
@@ -47,17 +49,18 @@ class RequestWrapper:
 
     def to_curl(self):
         """to_curl function returns a string of curl to execute in shell."""
-        return Curlify(self._wrapped_object).to_curl()
+        return Curlify(self._wrapped_object, **self._other_kwargs).to_curl()
 
     def print_curl(self):
         print(self.to_curl())
 
 
 class ResponseWrapper:
-    def __init__(self, wrapped_object, session_store, account_store):
+    def __init__(self, wrapped_object, session_store, account_store, **kwargs):
         self._wrapped_object = wrapped_object
         self._session_store = session_store
         self._account_store = account_store
+        self._other_kwargs = kwargs or dict()
 
     def __getattr__(self, name):
         """Intercepts attribute access and forwards it to the wrapped object."""
@@ -162,24 +165,25 @@ class ResponseWrapper:
         print(json.dumps(self._wrapped_object.json(), indent=2))
 
     def print_curl(self):
-        print(Curlify(self._wrapped_object.request).to_curl())
+        print(Curlify(self._wrapped_object.request, **self._other_kwargs).to_curl())
 
 
 class Curlify:
-    DEFAULT_EXCLUDE_HEADERS = [
+    DEFAULT_EXCLUDE_HEADERS = (
         "host",
         "content-length",
         "accept-encoding",
         "connection",
         "user-agent",
-    ]
+    )
 
     def __init__(self, request, exclude_headers = DEFAULT_EXCLUDE_HEADERS,
-            compressed=False, verified=True):
+            compressed=False, verified=True, timeout=None, **kwargs):
         self.req = request
         self.exclude_headers = exclude_headers
         self.compressed = compressed
         self.verified = verified
+        self.timeout = timeout
 
     def to_curl(self) -> str:
         """to_curl function returns a string of curl to execute in shell.
@@ -197,6 +201,9 @@ class Curlify:
             quote = quote + f" -d '{self.decode_body()}'"
 
         parts = re.split(r'\s(?=-[dH])', quote)
+
+        if self.timeout:
+            parts.append(f"--max-time {self.timeout}")
 
         if self.compressed:
             parts.append("--compressed")
