@@ -8,18 +8,28 @@ from ._consts import JF_BASE_URL
 from ._consts import JF_ACCESS_TOKEN
 from ._consts import HK_AUTHORIZATION
 from ._consts import HK_REQUEST_ID
+from ._config import CurliConfig
 from ._decorators import deprecated
 from ._helpers import RequestWrapper
 from ._helpers import ResponseWrapper
+from ._helpers import ErrorWrapper
 from ._store import Store
 from ._utils import normalize_header
 
+from ..errors import map_httpx_exception
+
+
 class Curli:
 
-    def __init__(self, invoker, session_store: Store, account_store: Store):
+    def __init__(self, invoker, session_store: Store, account_store: Store, config: CurliConfig|None = None):
         self._invoker = invoker
         self._session = session_store
         self._account = account_store
+        self._config = config or CurliConfig()
+
+    @property
+    def config(self):
+        return self._config
 
     @property
     def invoker(self):
@@ -89,6 +99,9 @@ class Curli:
     def _wrap_request(self, request, **others):
         return RequestWrapper(request, session_store=self._session, account_store=self._account, **others)
 
+    def _wrap_error(self, error, **others):
+        return ErrorWrapper(error)
+
     #--------------------------------------------------------------------------
 
     class PrepareObject:
@@ -152,7 +165,14 @@ class Curli:
 
     def request(self, method, url, *args, **kwargs):
         url, args, kwargs, others = self._build_params(url, *args, **kwargs)
-        return self._wrap_response(self._invoker.request(method, url, *args, **kwargs), **others)
+        try:
+            return self._wrap_response(self._invoker.request(method, url, *args, **kwargs), **others)
+        except httpx.RequestError as exc:
+            error = map_httpx_exception(exc, **others)
+            if callable(self._config.error_presenter):
+                if self._config.error_presenter(error):
+                    return self._wrap_error(error, **others)
+            raise error from exc
 
     def get(self, url, *args, **kwargs):
         return self.request("GET", url, *args, **kwargs)

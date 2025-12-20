@@ -168,6 +168,20 @@ class ResponseWrapper:
         print(Curlify(self._wrapped_object.request, **self._other_kwargs).to_curl())
 
 
+class ErrorWrapper:
+    def __init__(self, error, *args, **kwargs):
+        self._error = error
+
+    def print(self, details: bool = False):
+        pass
+
+    def print_body(self):
+        pass
+
+    def print_curl(self):
+        pass
+
+
 class Curlify:
     DEFAULT_EXCLUDE_HEADERS = (
         "host",
