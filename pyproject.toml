@@ -1,7 +1,7 @@
 [project]
 name = "apibean-client"
-version = "0.1.0"
-description = ""
+version = "0.1.1a1"
+description = "A Python API client with structured errors, presets, and notebook-friendly UX."
 readme = "README.md"
 license = 'GPL-3.0'
 license-files = [ "LICENSE.txt" ]
@@ -17,9 +17,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pydash>=8.0.5",
     "pytest<8.0.0,>=7.4.3",
     "pytest-cov<4.0.0,>=3.0.0",
-    "pydash>=8.0.5",
     "mypy<2.0.0,>=1.8.0",
 ]
 lint = [
